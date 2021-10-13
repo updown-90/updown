@@ -1,5 +1,6 @@
 package com.updown.account;
 
+import com.updown.domain.Account;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,6 +29,9 @@ class AccountControllerTest {
 
     @Autowired
     private AccountRepository accountRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @MockBean
     JavaMailSender javaMailSender;
@@ -63,8 +68,10 @@ class AccountControllerTest {
                 .with(csrf()))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(view().name("redirect:/"));
+        Account account = accountRepository.findByEmail("email@gmail.com");
+        assertThat(account).isNotNull();
+        assertThat(account.getPassword()).isNotEqualTo("updown123!@#");
 
-        assertThat(accountRepository.existsByEmail("email@gmail.com")).isNotNull();
         then(javaMailSender).should().send(any(SimpleMailMessage.class));
 
     }
